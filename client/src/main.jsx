@@ -1,0 +1,5 @@
+import React from 'react';import{createRoot}from'react-dom/client';import{Provider}from'react-redux';import{configureStore,createSlice,createAsyncThunk}from'@reduxjs/toolkit';import App from './ui.jsx';import './style.css';
+const api=import.meta.env.VITE_API_URL||'http://localhost:5000/api';
+export const load=createAsyncThunk('clinic/load',async()=>{const paths=['patients','appointments','invoices'];const vals=await Promise.all(paths.map(async p=>{const r=await fetch(api+'/'+p);if(!r.ok)throw Error('API '+p+' failed');return r.json()}));return {patients:vals[0],appointments:vals[1],invoices:vals[2]}});
+const slice=createSlice({name:'clinic',initialState:{patients:[],appointments:[],invoices:[],error:''},reducers:{},extraReducers:b=>b.addCase(load.fulfilled,(s,a)=>Object.assign(s,a.payload)).addCase(load.rejected,(s,a)=>{s.error=a.error.message||'Request failed'})});
+export const store=configureStore({reducer:{clinic:slice.reducer}});createRoot(document.getElementById('root')).render(<Provider store={store}><App/></Provider>);
